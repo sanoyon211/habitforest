@@ -41,13 +41,20 @@ export default function LoginPage() {
 
   async function handleGoogleLogin() {
     setGoogleLoading(true);
+    setError("");
     try {
-      await signIn.social({
+      const res = await signIn.social({
         provider: "google",
         callbackURL: "/dashboard",
       });
-    } catch {
-      setError("Google Login এ সমস্যা হয়েছে।");
+      if (res?.error) {
+        console.error("Google Auth Error:", res.error);
+        setError(`Google Error: ${res.error.message || JSON.stringify(res.error)}`);
+        setGoogleLoading(false);
+      }
+    } catch (err) {
+      console.error("Google Catch Error:", err);
+      setError(`Error: ${err.message || "Unknown error occurred"}`);
       setGoogleLoading(false);
     }
   }
