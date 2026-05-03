@@ -6,18 +6,27 @@ let authInstance = null;
 
 async function getAuth() {
   if (!authInstance) {
-    const conn = await connectDB();
-    authInstance = createAuth(conn.connection);
+    const mongooseInstance = await connectDB();
+    const db = mongooseInstance.connection.getClient().db();
+    authInstance = createAuth(db);
   }
   return authInstance;
 }
 
 async function handler(req) {
-  const auth = await getAuth();
-  if (req.method === "POST") {
-    return toNextJsHandler(auth).POST(req);
+  try {
+    const auth = await getAuth();
+    if (req.method === "POST") {
+      return await toNextJsHandler(auth).POST(req);
+    }
+    return await toNextJsHandler(auth).GET(req);
+  } catch (error) {
+    console.error("Auth Handler Error:", error);
+    return new Response(
+      JSON.stringify({ error: error.message || "Internal Server Error" }),
+      { status: 500, headers: { "Content-Type": "application/json" } }
+    );
   }
-  return toNextJsHandler(auth).GET(req);
 }
 
 export const GET = handler;
