@@ -1,4 +1,21 @@
-import { auth } from '@/lib/auth';
-import { toNextJsHandler } from 'better-auth/next-js';
+import { createAuth } from "@/lib/auth";
+import connectDB from "@/lib/db";
+import { toNextJsHandler } from "better-auth/next-js";
 
-export const { POST, GET } = toNextJsHandler(auth);
+let authInstance = null;
+
+async function getAuth() {
+  if (!authInstance) {
+    const conn = await connectDB();
+    authInstance = createAuth(conn.connection);
+  }
+  return authInstance;
+}
+
+async function handler(req) {
+  const auth = await getAuth();
+  return toNextJsHandler(auth)(req);
+}
+
+export const GET = handler;
+export const POST = handler;
