@@ -14,7 +14,10 @@ async function getAuth() {
 
 async function handler(req) {
   const auth = await getAuth();
-  return toNextJsHandler(auth)(req);
+  if (req.method === "POST") {
+    return toNextJsHandler(auth).POST(req);
+  }
+  return toNextJsHandler(auth).GET(req);
 }
 
 export const GET = handler;
