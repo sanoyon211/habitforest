@@ -19,6 +19,9 @@ async function handler(req) {
     if (req.method === "POST") {
       return await toNextJsHandler(auth).POST(req);
     }
+    if (req.method === "OPTIONS" && toNextJsHandler(auth).OPTIONS) {
+      return await toNextJsHandler(auth).OPTIONS(req);
+    }
     return await toNextJsHandler(auth).GET(req);
   } catch (error) {
     console.error("Auth Handler Error:", error);
@@ -31,3 +34,4 @@ async function handler(req) {
 
 export const GET = handler;
 export const POST = handler;
+export const OPTIONS = handler;
