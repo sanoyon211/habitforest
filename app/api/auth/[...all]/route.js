@@ -1,37 +1,22 @@
-import { createAuth } from "@/lib/auth";
-import connectDB from "@/lib/db";
+import { auth } from "@/lib/auth";
 import { toNextJsHandler } from "better-auth/next-js";
 
-let authInstance = null;
+const handlers = toNextJsHandler(auth);
 
-async function getAuth() {
-  if (!authInstance) {
-    const mongooseInstance = await connectDB();
-    const db = mongooseInstance.connection.getClient().db();
-    authInstance = createAuth(db);
+export const GET = handlers.GET;
+export const POST = handlers.POST;
+
+export async function OPTIONS(req) {
+  if (handlers.OPTIONS) {
+    return handlers.OPTIONS(req);
   }
-  return authInstance;
+  return new Response(null, {
+    status: 204,
+    headers: {
+      "Access-Control-Allow-Origin": req.headers.get("origin") || "*",
+      "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
+      "Access-Control-Allow-Headers": "Content-Type, Authorization",
+      "Access-Control-Allow-Credentials": "true",
+    },
+  });
 }
-
-async function handler(req) {
-  try {
-    const auth = await getAuth();
-    if (req.method === "POST") {
-      return await toNextJsHandler(auth).POST(req);
-    }
-    if (req.method === "OPTIONS" && toNextJsHandler(auth).OPTIONS) {
-      return await toNextJsHandler(auth).OPTIONS(req);
-    }
-    return await toNextJsHandler(auth).GET(req);
-  } catch (error) {
-    console.error("Auth Handler Error:", error);
-    return new Response(
-      JSON.stringify({ error: error.message || "Internal Server Error" }),
-      { status: 500, headers: { "Content-Type": "application/json" } }
-    );
-  }
-}
-
-export const GET = handler;
-export const POST = handler;
-export const OPTIONS = handler;
