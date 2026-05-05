@@ -2,11 +2,9 @@ import { NextResponse } from "next/server";
 import connectDB from "@/lib/db";
 import UserProfile from "@/models/UserProfile";
 import Habit from "@/models/Habit";
-import { createAuth } from "@/lib/auth";
+import { auth } from "@/lib/auth";
 
 async function getSession(req) {
-  const conn = await connectDB();
-  const auth = createAuth(conn.connection);
   return auth.api.getSession({ headers: req.headers });
 }
 
